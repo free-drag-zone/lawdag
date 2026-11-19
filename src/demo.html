@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer"><meta name="color-scheme" content="light">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; media-src data:; img-src data:; base-uri 'none'; form-action 'none'">
+<title>LawDAG · 刑法の復習</title>
+<style>
+*{box-sizing:border-box} :root{--ink:#192f3b;--sub:#4a6571;--paper:#f4f7f6;--line:#cddbd7;--green:#0e6552;--pale:#e7f2ea;--orange:#985522}
+body{margin:0;color:var(--ink);background:var(--paper);font:1rem/1.7 "Yu Gothic UI","Hiragino Sans","Noto Sans CJK JP",Meiryo,sans-serif}
+header{background:var(--ink);color:white}.wrap{width:min(100% - 32px,760px);margin:auto}.brand{display:flex;align-items:center;justify-content:space-between;padding:15px 0}.brand b{font:700 1.45rem/1.3 "Segoe UI",sans-serif;letter-spacing:-.03em}.brand small{font-size:.88rem}
+main{padding:20px 0 44px}nav{display:flex;gap:5px;background:#e2eae7;padding:4px;border-radius:15px;margin-bottom:20px}nav button{flex:1;border:0;background:transparent;color:var(--sub);font-weight:700;border-radius:11px}nav button[aria-current=page]{background:white;color:var(--green);box-shadow:0 1px 4px #14392d25}
+h1{font-size:clamp(1.45rem,5vw,2.05rem);line-height:1.35;margin:.22em 0 .4em;letter-spacing:-.035em}h2{font-size:1.15rem;line-height:1.5;margin:0 0 10px}p{margin:.35em 0 .8em}.muted,label,small{color:var(--sub)}header small{color:#d5e9df}.path{font-size:.9rem;color:var(--green);font-weight:700;margin:8px 0 0}.panel{background:white;border:1px solid var(--line);border-radius:18px;padding:clamp(16px,4vw,27px);margin:14px 0}.prompt{font-weight:650;line-height:1.8;font-size:1.11rem}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.stack{display:grid;gap:8px;margin:12px 0}button,select,summary{font:inherit;color:inherit}button,select{min-height:46px}button{cursor:pointer;border:1px solid #b4c9c3;background:#fff;border-radius:10px;padding:8px 14px;line-height:1.45}button:focus-visible,a:focus-visible,summary:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #bf7227;outline-offset:2px}button:hover{background:#eef5f2}.primary{background:var(--green);color:white;border-color:var(--green);font-weight:700}.primary:hover{background:#114e41}button[disabled]{opacity:.5;cursor:default}label{display:block;font-weight:650;font-size:.9rem}select{appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='12' viewBox='0 0 15 12'%3E%3Cpath d='m2 3 5.5 5L13 3' fill='none' stroke='%2322483d' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 15px center;padding:8px 36px 8px 12px;width:100%;border:1px solid #aebfb9;border-radius:9px;margin:4px 0}
+summary{cursor:pointer;font-weight:650;padding:10px 0}details+details{border-top:1px solid var(--line)}details p{white-space:pre-line;overflow-wrap:anywhere}.reply,.notice{margin:14px 0;background:var(--pale);border-left:4px solid var(--green);padding:12px 14px;border-radius:3px 10px 10px 3px}.notice{background:#faf0df;border-color:var(--orange)}.option{width:100%;text-align:left;display:flex;gap:12px;align-items:baseline}.option span:first-child{font-weight:bold;color:var(--green);min-width:1.15em}.option[aria-pressed=true]{border:2px solid var(--green);background:var(--pale);padding:7px 13px}.ref{font-size:.93rem;color:var(--sub)}a{color:var(--green);text-underline-offset:.2em}audio{width:100%;margin:12px 0}textarea{display:block;width:100%;font:inherit;padding:10px;border-radius:8px;border:1px solid var(--line);min-height:80px}.feedback{min-height:1em}.lesson{margin-bottom:14px} .subgrid{display:grid;gap:6px} [hidden]{display:none!important}
+@media(min-width:600px){main{padding-top:28px}.lesson{display:flex;align-items:center;gap:16px}.lesson label{white-space:nowrap}.lesson select{width:auto;flex:1}nav{max-width:480px}}
+</style></head>
+<body><header><div class="wrap brand"><b>LawDAG</b><small id="edition"></small></div></header><main class="wrap">
+<nav aria-label="学習モード"><button data-tab="essay">論文の復習</button><button data-tab="quiz">短答を解く</button><button data-tab="listen">耳で復習</button></nav>
+<section id="essay"><div class="lesson"><label for="lesson">取り組む問題</label><select id="lesson"></select></div>
+<div class="path" id="lessonLabel"></div><h1 id="lessonTitle"></h1><p id="scope" class="muted"></p>
+<details class="panel" id="caseDetails"><summary id="caseLabel"></summary><p id="body"></p></details>
+<div class="panel"><p id="trail" class="path"></p><h2 id="question" class="prompt"></h2><div class="row"><button id="show" class="primary">考え方を確認</button><button id="return" hidden></button></div><p id="answer" class="reply" hidden></p>
+<div id="base"><p class="path">つまずいたところから復習</p><div class="row" id="parents"></div></div>
+</div>
+<details class="panel" id="notes"><summary>自分の一文を書く</summary><label for="draft">事実とその意味を一文で</label><textarea id="draft" placeholder="〜という事情から、〜と考える。"></textarea><small id="saved"></small></details>
+<div class="panel" id="refs"></div><button data-jump="quiz">短答で確かめる</button></section>
+<section id="quiz" hidden><div class="lesson"><label for="quizSelect">取り組む短答</label><select id="quizSelect"></select></div><p class="path" id="quizType"></p><h1 id="quizTitle"></h1>
+<div class="panel"><p id="quizQ" class="prompt"></p><div class="stack" id="options"></div><button class="primary" id="grade" disabled>採点する</button><div id="result" aria-live="polite"></div><div id="afterQuiz" hidden class="row"><button id="toBase">関連する基礎を復習</button><button id="retry">もう一度解く</button></div></div><p class="ref" id="quizSource"></p></section>
+<section id="listen" hidden><p class="path">刑法 · 占有</p><h1>耳で復習する</h1><div class="panel"><h2 id="audioTitle"></h2><p>問いを聞いたら、無音の間に自分の言葉で答えてください。そのまま要点の確認と次の問いに進みます。</p><audio id="player" controls preload="none" aria-label="刑法の音声復習"></audio><p class="ref" id="audioDuration"></p></div></section>
+</main><script id="course" type="application/json">__COURSE__</script><script>
+"use strict";
+const course=JSON.parse(document.getElementById('course').textContent);
+const el=id=>document.getElementById(id);
+function element(tag,txt){const e=document.createElement(tag);e.textContent=txt;return e}
+function action(text,fn){const b=element("button",text);b.onclick=fn;return b}
+function link(name,url){const a=element("a",name);a.href=url;a.target="_blank";a.rel="noopener noreferrer";return a}
+function options(select,items){for(const item of items)select.add(new Option(item.label||item.name,item.id))}
+el('edition').textContent=course.edition;
+options(el('lesson'),course.lessons);options(el('quizSelect'),course.quizzes);
+let lesson, trail=[], origin=null, picked=null, graded=false;
+const sessionNotes = new Map();
+const noteKey=()=>[course.store,lesson.id].join(".");
+function tab(id){for(const name of ['essay','quiz','listen'])el(name).hidden=name!==id;
+ document.querySelectorAll('[data-tab]').forEach(b=>{if(b.dataset.tab===id)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
+ if(id!=='listen')el('player').pause();window.scrollTo(0,0)}
+for(const b of document.querySelectorAll('[data-tab],[data-jump]')) b.onclick=()=>tab(b.dataset.tab||b.dataset.jump);
+function showLesson(){
+ lesson=course.lessons.find(x=>x.id===el('lesson').value);trail=[lesson.key];origin=null;
+ el('caseDetails').hidden=false;el('notes').hidden=false;el('scope').textContent=lesson.scope;el('lessonLabel').textContent=lesson.label;el('lessonTitle').textContent=lesson.title;
+ el('caseLabel').textContent=lesson.caseLabel;el('body').textContent=lesson.body;el('caseDetails').open=false;el('notes').open=false;
+ let memo=sessionNotes.get(noteKey());if(memo===undefined){try{memo=localStorage.getItem(noteKey())}catch{}}
+ el('draft').value=memo||'';el('saved').textContent=memo?'この端末のメモ':'';
+ drawQuestion();drawRefs();
+}
+el('draft').oninput=()=>{const text=el('draft').value;sessionNotes.set(noteKey(),text);
+ try{localStorage.setItem(noteKey(),text);el('saved').textContent='このブラウザに保存しました。'}catch{el('saved').textContent='この画面を開いている間だけ保持します。'}};
+function drawRefs(){
+ const root=el('refs');root.replaceChildren(element('h2',course.refsTitle));
+ for(const ref of course.refs){const d=document.createElement('details'); d.append(element('summary',ref.label),element('p',ref.body));root.append(d)}
+ const source=element('p','');source.className='ref';source.append(link('刑法235条・254条（e-Gov）',course.law),'　',link('占有を判断した裁判例',course.court));root.append(source);
+}
+function drawQuestion(){
+ const node=course.nodes[trail.at(-1)];
+ el('trail').textContent=trail.map(id=>course.nodes[id][0]).join(' ／ ');
+ el('question').textContent=node[1];el('answer').textContent=node[2];el('answer').hidden=true;
+ el('show').textContent='考え方を確認';el('show').setAttribute('aria-expanded','false');
+ el('parents').replaceChildren(...node[3].map(id=>action(course.nodes[id][0],()=>{trail.push(id);drawQuestion()})));
+ el('base').hidden=!node[3].length;
+ el('return').hidden=trail.length===1&&!origin;
+ el('return').textContent=trail.length>1?'前の問いに戻る':'短答に戻る';
+}
+el('show').onclick=()=>{const a=el('answer');a.hidden=!a.hidden;el('show').textContent=a.hidden?'考え方を確認':'考え方を閉じる';el('show').setAttribute('aria-expanded',String(!a.hidden))};
+el('return').onclick=()=>{if(trail.length>1){trail.pop();drawQuestion()}else if(origin){showLesson();tab('quiz')}};
+el('lesson').onchange=showLesson;
+function currentQuiz(){return course.quizzes.find(x=>x.id===el('quizSelect').value)}
+function drawQuiz(){
+ const q=currentQuiz();picked=null;graded=false;el('grade').disabled=true;el('grade').hidden=false;el('afterQuiz').hidden=true;
+ el('quizType').textContent=q.type;el('quizTitle').textContent=q.name;el('quizQ').textContent=q.q;el('result').replaceChildren();
+ const container=el('options');container.replaceChildren();
+ q.opts.forEach((option,i)=>{const b=action('',()=>{if(graded)return;picked=i;Array.from(container.children).forEach((c,j)=>c.setAttribute('aria-pressed',String(i===j)));el('grade').disabled=false});
+ b.className='option';b.setAttribute('aria-pressed','false');b.append(element('span',String(i+1)),element('span',option));container.append(b)});
+ const src=el('quizSource');src.replaceChildren();
+ src.append('LawDAGの練習問題。',link('刑法（e-Gov）',course.law));
+}
+el('grade').onclick=()=>{if(picked===null||graded)return;const q=currentQuiz();graded=true;
+ const correct=picked===q.a;const box=element('div','');box.className=correct?'reply':'notice';
+ box.append(element('strong',correct?'正解':'もう一度、理由を確認'),element('p','正答は '+(q.a+1)+' 。'+q.why));
+ el('result').replaceChildren(box);el('grade').hidden=true;el('afterQuiz').hidden=false;
+ Array.from(el('options').children).forEach(b=>b.disabled=true)};
+el('toBase').onclick=()=>{origin='quiz';trail=[currentQuiz().node];el('caseDetails').hidden=true;el('notes').hidden=true;
+ el('lessonTitle').textContent='短答で迷った観点';el('lessonLabel').textContent=currentQuiz().name;el('scope').textContent='基礎を確かめたら、同じ短答に戻れます。';drawQuestion();tab('essay');el('question').scrollIntoView({block:'center'})};
+el('retry').onclick=drawQuiz;el('quizSelect').onchange=drawQuiz;
+el('audioTitle').textContent=course.audioTitle;el('audioDuration').textContent=course.audioDuration;
+el('player').src='data:audio/mpeg;base64,__AUDIO__';
+showLesson();drawQuiz();tab('essay');
+</script></body></html>
